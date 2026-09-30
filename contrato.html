@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Contrato de mfe-catalogo (sin contenedor)</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 24px; background: #fafafa; }
+    #resumen { font-weight: bold; padding: 8px 12px; background: #fff3c4; }
+    #resumen[data-estado="ok"] { background: #eaf6ea; color: #1b7a3e; }
+    #resumen[data-estado="fallo"] { background: #fdecea; color: #a12a1e; }
+    li.ok { color: #1b7a3e; }
+    li.mal { color: #a12a1e; font-weight: bold; }
+    #raiz-prueba { border: 1px dashed #bbb; padding: 8px; margin-top: 16px; }
+  </style>
+  <link rel="stylesheet" href="http://localhost:8085/tokens.css">
+</head>
+<body>
+  <h1>Pruebas de contrato: mfe-catalogo</h1>
+  <p>Verifican, sin el contenedor, el contrato de montaje y los eventos acordados en <code>contenedor/CONTRATOS.md</code>.</p>
+  <p id="resumen">Ejecutando…</p>
+  <ul id="resultados"></ul>
+  <div id="raiz-prueba"></div>
+
+  <script src="catalogo.js"></script>
+  <script>
+    (async function () {
+      const lista = document.getElementById('resultados');
+      const resumen = document.getElementById('resumen');
+      const raiz = document.getElementById('raiz-prueba');
+      let total = 0, fallos = 0;
+
+      function verificar(descripcion, condicion, detalle) {
+        total++;
+        console.assert(condicion, descripcion, detalle === undefined ? '' : detalle);
+        if (!condicion) fallos++;
+        const li = document.createElement('li');
+        li.className = condicion ? 'ok' : 'mal';
+        li.textContent = (condicion ? '✓ ' : '✗ ') + descripcion +
+          (!condicion && detalle !== undefined ? ' — recibido: ' + JSON.stringify(detalle) : '');
+        lista.appendChild(li);
+      }
+      const dormir = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
+      async function esperar(condicion, ms) {
+        const fin = Date.now() + (ms || 3000);
+        while (Date.now() < fin) { if (condicion()) return true; await dormir(25); }
+        return !!condicion();
+      }
+      // Registra los eventos que publica el MFE bajo prueba
+      function escuchar(nombre) {
+        const recibidos = [];
+        window.addEventListener(nombre, function (e) { recibidos.push(e.detail); });
+        return recibidos;
+      }
+      const claves = function (o) { return Object.keys(o).sort().join(','); };
+
+      try {
+        verificar('Expone window.renderCatalogo', typeof window.renderCatalogo === 'function');
+        verificar('Expone window.unmountCatalogo', typeof window.unmountCatalogo === 'function');
+        const agregados = escuchar('carrito:agregar');
+        window.renderCatalogo('raiz-prueba');
+        verificar('El montaje genera contenido', raiz.children.length > 0 && !!raiz.querySelector('.cat-titulo'));
+        verificar('Muestra tarjetas de platos', raiz.querySelectorAll('.cat-tarjeta').length > 0);
+        raiz.querySelector('.cat-boton').click();
+        verificar('Publica carrito:agregar al pulsar "Agregar al carrito"', agregados.length === 1);
+        const d = agregados[0] || {};
+        verificar('carrito:agregar tiene { id: número, nombre: texto, precio: número }',
+          typeof d.id === 'number' && typeof d.nombre === 'string' && typeof d.precio === 'number', d);
+        raiz.querySelector('.cat-buscar').value = 'zzz-no-existe';
+        raiz.querySelector('.cat-buscar').dispatchEvent(new Event('input', { bubbles: true }));
+        verificar('La búsqueda filtra (estado propio del MFE)', raiz.querySelectorAll('.cat-tarjeta').length === 0);
+        window.unmountCatalogo('raiz-prueba');
+        verificar('unmountCatalogo deja el contenedor vacío', raiz.innerHTML === '');
+      } catch (err) {
+        verificar('La suite terminó sin excepciones', false, String(err && err.message || err));
+      }
+      resumen.textContent = fallos === 0
+        ? '✓ Todas las pruebas de contrato pasan (' + total + ')'
+        : '✗ Fallan ' + fallos + ' de ' + total + ' pruebas de contrato';
+      resumen.dataset.estado = fallos === 0 ? 'ok' : 'fallo';
+    })();
+  </script>
+</body>
+</html>

@@ -19,17 +19,17 @@
 
   // Estilos propios con prefijo "cat-" para no chocar con otros equipos
   const CSS = `
-    .cat-titulo { color: #0b4f8a; margin: 0 0 4px; }
-    .cat-version { font-size: 12px; color: #888; }
-    .cat-buscar { width: 100%; padding: 10px; margin: 16px 0; border: 1px solid #bbb; border-radius: 4px; font-size: 15px; }
+    .cat-titulo { color: var(--upc-color-primario, #0b4f8a); margin: 0 0 4px; }
+    .cat-version { font-size: 12px; color: var(--upc-color-texto-tenue, #888); }
+    .cat-buscar { width: 100%; padding: 10px; margin: 16px 0; border: 1px solid var(--upc-color-borde-input, #bbb); border-radius: var(--upc-radio-1, 4px); font-size: 15px; }
     .cat-grilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 16px; }
-    .cat-tarjeta { background: #fff; border: 1px solid #dde3ea; border-radius: 6px; padding: 16px; }
-    .cat-categoria { font-size: 12px; color: #3e9f3a; text-transform: uppercase; }
+    .cat-tarjeta { background: var(--upc-color-superficie, #fff); border: 1px solid var(--upc-color-borde, #dde3ea); border-radius: var(--upc-radio-2, 6px); padding: 16px; }
+    .cat-categoria { font-size: 12px; color: var(--upc-color-exito, #3e9f3a); text-transform: uppercase; }
     .cat-nombre { font-size: 17px; margin: 6px 0; }
     .cat-precio { font-weight: bold; margin-bottom: 12px; }
-    .cat-boton { background: #3e9f3a; color: #fff; border: 0; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
-    .cat-boton:hover { background: #1b7a3e; }
-    .cat-vacio { color: #777; }
+    .cat-boton { background: var(--upc-color-exito, #3e9f3a); color: var(--upc-color-sobre-primario, #fff); border: 0; padding: 8px 12px; border-radius: var(--upc-radio-1, 4px); cursor: pointer; }
+    .cat-boton:hover { background: var(--upc-color-exito-oscuro, #1b7a3e); }
+    .cat-vacio { color: var(--upc-color-texto-suave, #777); }
   `;
 
   function asegurarEstilos() {
